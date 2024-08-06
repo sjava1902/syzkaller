@@ -124,7 +124,6 @@ Arm Ltd
  Andrew Turner
 h0wdy
 Dylan Yudaken
-<<<<<<< HEAD
 Marius Fleischer
 Piotr Siminski
 Purdue University
@@ -133,6 +132,4 @@ Krzysztof Pawlaczyk
 Simone Weiß
 Amazon
  Bjoern Doebel
-=======
 Viacheslav Sablin
->>>>>>> bd26fe565 (sys/linux/filesystems: add the inlinecrypt mount flag)
