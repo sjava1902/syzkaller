@@ -7,7 +7,7 @@
 set -eux
 
 # Create a minimal Debian distribution in a directory.
-PREINSTALL_PKGS=openssh-server,curl,tar,gcc,libc6-dev,time,strace,sudo,less,psmisc,selinux-utils,policycoreutils,checkpolicy,selinux-policy-default,firmware-atheros,debian-ports-archive-keyring
+PREINSTALL_PKGS=openssh-server,curl,tar,gcc,libc6-dev,time,strace,sudo,less,psmisc,selinux-utils,policycoreutils,checkpolicy,selinux-policy-default,firmware-atheros,debian-ports-archive-keyring,ocfs2-tools,drbd-utils
 
 # If ADD_PACKAGE is not defined as an external environment variable, use our default packages
 if [ -z ${ADD_PACKAGE+x} ]; then
@@ -18,7 +18,7 @@ fi
 ARCH=$(uname -m)
 RELEASE=bullseye
 FEATURE=minimal
-SEEK=2047
+SEEK=7167
 PERF=false
 
 # Display help function
@@ -174,6 +174,25 @@ echo 'binfmt_misc /proc/sys/fs/binfmt_misc binfmt_misc defaults 0 0' | sudo tee 
 echo -en "127.0.0.1\tlocalhost\n" | sudo tee $DIR/etc/hosts
 echo "nameserver 8.8.8.8" | sudo tee -a $DIR/etc/resolv.conf
 echo "syzkaller" | sudo tee $DIR/etc/hostname
+
+# # Insert OCFS2 setup script
+# sudo tee -a $DIR/etc/rc.local <<'EOL'
+# #!/bin/bash
+# # Create OCFS2 loopback disk
+# dd if=/dev/zero of=/ocfs2_disk.img bs=1G count=5
+# losetup /dev/loop0 /ocfs2_disk.img
+# mkfs.ocfs2 -N 2 --cluster-stack=o2cb --cluster-name=syzkaller /dev/loop0
+# mkdir -p /mnt/ocfs2
+# mount -t ocfs2 /dev/loop0 /mnt/ocfs2
+# exit 0
+# EOL
+
+# # Make rc.local executable
+# sudo chmod +x $DIR/etc/rc.local
+
+# # Load loopback module
+# echo "loop" | sudo tee -a $DIR/etc/modules
+
 ssh-keygen -f $RELEASE.id_rsa -t rsa -N ''
 sudo mkdir -p $DIR/root/.ssh/
 cat $RELEASE.id_rsa.pub | sudo tee $DIR/root/.ssh/authorized_keys

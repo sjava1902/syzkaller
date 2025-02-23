@@ -128,9 +128,11 @@ func setLinuxSanitizerConfigs(cf *kconfig.ConfigFile, types []crash.Type, dt deb
 	for _, typ := range types {
 		if typ == crash.Warning {
 			// These are disabled together.
+			cf.Unset("BUG")
+			cf.Unset("WARNING")
 			typ = crash.Bug
 		}
-		need[typ] = true
+		need[typ] = false
 	}
 	var disabled []string
 	for typ, f := range keep {

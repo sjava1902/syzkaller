@@ -1,0 +1,4 @@
+r0 = openat(AT_FDCWD, "/mnt/shared/testfile", O_RDWR|O_CREAT, 0)
+write(r0, &(0x7f0000000000)="/HelloWorld", 10)
+close(r0)
+

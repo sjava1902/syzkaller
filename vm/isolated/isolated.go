@@ -119,13 +119,13 @@ func (pool *Pool) Create(workdir string, index int) (vmimpl.Instance, error) {
 	}
 
 	// Remount to writable.
-	inst.ssh("mount -o remount,rw /")
+	//inst.ssh("mount -o remount,rw /")
 
 	// Create working dir if doesn't exist.
 	inst.ssh("mkdir -p '" + inst.cfg.TargetDir + "'")
 
 	// Remove temp files from previous runs.
-	inst.ssh("rm -rf '" + filepath.Join(inst.cfg.TargetDir, "*") + "'")
+	//inst.ssh("rm -rf '" + filepath.Join(inst.cfg.TargetDir, "*") + "'")
 
 	// Remove pstore files from previous runs.
 	if inst.cfg.Pstore {

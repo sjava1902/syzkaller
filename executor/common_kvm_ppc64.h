@@ -62,7 +62,7 @@
 #define PATB_HR (1UL << 63)
 #define PRTB_MASK 0x0ffffffffffff000UL
 
-#define ALIGNUP(p, q) ((void*)(((unsigned long)(p) + (q)-1) & ~((q)-1)))
+#define ALIGNUP(p, q) ((void*)(((unsigned long)(p) + (q) - 1) & ~((q) - 1)))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 #ifndef KVM_REG_PPC_DEC_EXPIRY

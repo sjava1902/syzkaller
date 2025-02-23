@@ -230,6 +230,23 @@ type Config struct {
 
 	// Implementation details beyond this point. Filled after parsing.
 	Derived `json:"-"`
+
+	// for distributed file system
+	ServNum        int    `json:"server_num"`
+	DFSName        string `json:"dfs_name,omitempty"`
+	InitIp         string `json:"init_ip,omitempty"`
+	DfsSetupParams string `json:"dfs_setup_params,omitempty"`
+	KernelSrv      bool   `json:"kernel_server"`
+	KernelClient   bool   `json:"kernel_client"`
+	InitShmId      int    `json:"init_shmid"`
+	NetFailure     bool   `json:"net_failure"`
+	NodeCrash      bool   `json:"node_crash"`
+	LFSBased       bool   `json:"lfs_based"`
+	EnableCsan     bool   `json:"enable_csan"`
+	EnableC2san    bool   `json:"enable_c2san"`
+	EnableSrvFb    bool   `json:"enable_server_feedback"`
+	EnableEval     bool   `json:"enable_eval"`
+	EnableClientFb bool   `json:"enable_client_feedback"`
 }
 
 // These options are not guaranteed to be backward/forward compatible and

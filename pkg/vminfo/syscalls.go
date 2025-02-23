@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/syzkaller/pkg/flatrpc"
 	"github.com/google/syzkaller/pkg/fuzzer/queue"
+	"github.com/google/syzkaller/pkg/log"
 	"github.com/google/syzkaller/prog"
 	"github.com/google/syzkaller/sys/targets"
 )
@@ -141,10 +142,12 @@ func (ctx *checkContext) do(fileInfos []*flatrpc.FileInfo, featureInfos []*flatr
 }
 
 func (ctx *checkContext) rootCanOpen(file string) string {
+	log.Logf(0, "Checking if root can open file: %s", file)
 	return ctx.canOpenImpl(file, nil, true)
 }
 
 func (ctx *checkContext) canOpen(file string) string {
+	log.Logf(0, "Checking if file can be opened: %s", file)
 	return ctx.canOpenImpl(file, nil, false)
 }
 
@@ -260,6 +263,7 @@ func (ctx *checkContext) val(name string) uint64 {
 }
 
 func (ctx *checkContext) execRaw(calls []string, mode prog.DeserializeMode, root bool) *flatrpc.ProgInfo {
+	log.Logf(0, "Sandbox mode: %v (root: %v)", ctx.cfg.Sandbox, root)
 	sandbox := ctx.cfg.Sandbox
 	if root {
 		sandbox = flatrpc.ExecEnvSandboxNone

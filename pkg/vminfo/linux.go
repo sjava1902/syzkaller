@@ -28,6 +28,7 @@ func (linux) RequiredFiles() []string {
 		"/proc/kallsyms",
 		"/sys/module/*/sections/.text",
 		"/sys/module/kvm*/parameters/*",
+		"/mnt/shared/file",
 	}
 }
 
@@ -36,6 +37,7 @@ func (linux) CheckFiles() []string {
 		"/proc/version",
 		"/proc/filesystems",
 		"/sys/kernel/security/lsm",
+		"/mnt/shared/file", // Добавляем путь до вашего файла
 	}
 }
 

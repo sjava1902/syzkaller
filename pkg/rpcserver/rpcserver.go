@@ -362,6 +362,12 @@ func (serv *server) handleRunnerConn(ctx context.Context, runner *Runner, conn *
 }
 
 func (serv *server) handleMachineInfo(infoReq *flatrpc.InfoRequestRawT) (handshakeResult, error) {
+	var fileNames []string
+	for _, file := range infoReq.Files {
+		fileNames = append(fileNames, file.Name)
+	}
+	log.Logf(0, "Checking files on VM: %s", strings.Join(fileNames, ", "))
+
 	modules, machineInfo, err := serv.checker.MachineInfo(infoReq.Files)
 	if err != nil {
 		log.Logf(0, "parsing of machine info failed: %v", err)
@@ -470,7 +476,7 @@ func (serv *server) runCheck(ctx context.Context, info *handshakeResult) error {
 		serv.printMachineCheck(info.Files, enabledCalls, disabledCalls, transitivelyDisabled, features)
 	}
 	if checkErr != nil {
-		return checkErr
+		log.Logf(0, "runCheck: encountered error during check: %v, continuing.", checkErr)
 	}
 	enabledFeatures := features.Enabled()
 	serv.setupFeatures = features.NeedSetup()

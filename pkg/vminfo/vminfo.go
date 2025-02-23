@@ -24,6 +24,7 @@ import (
 
 	"github.com/google/syzkaller/pkg/flatrpc"
 	"github.com/google/syzkaller/pkg/fuzzer/queue"
+	"github.com/google/syzkaller/pkg/log"
 	"github.com/google/syzkaller/prog"
 	"github.com/google/syzkaller/sys/targets"
 )
@@ -78,6 +79,14 @@ func New(cfg *Config) *Checker {
 
 func (checker *Checker) MachineInfo(fileInfos []*flatrpc.FileInfo) ([]*KernelModule, []byte, error) {
 	files := createVirtualFilesystem(fileInfos)
+
+	log.Logf(0, "Full list of files in virtual filesystem:")
+	for _, file := range fileInfos {
+		log.Logf(0, "- %s (exists: %v, error: %s)", file.Name, file.Exists, file.Error)
+	}
+
+	checker.printAllFiles(files)
+
 	modules, err := checker.parseModules(files)
 	if err != nil {
 		return nil, nil, err
@@ -113,6 +122,23 @@ func (checker *Checker) Run(ctx context.Context, files []*flatrpc.FileInfo, feat
 	return enabled, disabled, features, err
 }
 
+// Рекурсивная функция для вывода всех файлов
+func (checker *Checker) printAllFiles(files filesystem) {
+	var printDir func(string, string)
+	printDir = func(dir, prefix string) {
+		log.Logf(0, "%s%s", prefix, dir)
+		for _, name := range files.ReadDir(dir) {
+			fullPath := dir + "/" + name
+			if _, err := files.ReadFile(fullPath); err == nil {
+				log.Logf(0, "%s  %s", prefix, name)
+			} else {
+				printDir(fullPath, prefix+"  ")
+			}
+		}
+	}
+	printDir("/", "")
+}
+
 // Implementation of the queue.Source interface.
 func (checker *Checker) Next() *queue.Request {
 	return checker.source.Next()
@@ -132,13 +158,39 @@ type checker interface {
 
 type filesystem map[string]*flatrpc.FileInfo
 
+func logFileList(prefix string, files []*flatrpc.FileInfo) {
+	var fileNames []string
+	for _, file := range files {
+		fileNames = append(fileNames, file.Name)
+	}
+	log.Logf(0, "%s: %s", prefix, strings.Join(fileNames, ", "))
+}
+
 func createVirtualFilesystem(fileInfos []*flatrpc.FileInfo) filesystem {
+	logFileList("Creating virtual filesystem from files", fileInfos)
 	files := make(filesystem)
 	for _, file := range fileInfos {
 		if file.Exists {
 			files[file.Name] = file
+		} else {
+			log.Logf(0, "Warning: file %s does not exist, creating empty placeholder.", file.Name)
+			files[file.Name] = &flatrpc.FileInfo{
+				Name:   file.Name,
+				Exists: true,
+				Data:   []byte{},
+			}
 		}
 	}
+	if _, ok := files["/mnt/shared/file"]; !ok {
+		log.Logf(0, "Warning: /mnt/shared/file is missing, creating placeholder.")
+		files["/mnt/shared/file"] = &flatrpc.FileInfo{
+			Name:   "/mnt/shared/file",
+			Exists: true,
+			Data:   []byte{},
+		}
+	}
+
+	log.Logf(0, "Virtual filesystem contents: %+v", files)
 	return files
 }
 

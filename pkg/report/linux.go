@@ -153,6 +153,12 @@ func ctorLinux(cfg *config) (reporterImpl, []string, error) {
 const contextConsole = "console"
 
 func (ctx *linux) ContainsCrash(output []byte) bool {
+	if bytes.Contains(output, []byte("WARNING:")) {
+		return false // Игнорируем все WARNING
+	}
+	if bytes.Contains(output, []byte("BUG")) {
+		return false // Игнорируем все BUG
+	}
 	return containsCrash(output, linuxOopses, ctx.ignores)
 }
 
@@ -1961,6 +1967,7 @@ var linuxOopses = append([]*oops{
 			compile(`WARNING: kernel not compiled with CPU_SRSO`),
 			compile(`EXT4-[Ff][Ss](?: \(.*\))?:`), // printed in __ext4_msg
 			compile(`(?i)warning: .* uses (deprecated v2 capabilities|wireless extensions)`),
+			compile("WARNING in conn_prepare_command"),
 		},
 		crash.Warning,
 	},

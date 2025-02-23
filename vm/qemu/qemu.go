@@ -264,6 +264,12 @@ var archConfigs = map[string]*archConfig{
 }
 
 func ctor(env *vmimpl.Env) (vmimpl.Pool, error) {
+	// Создаём мост перед запуском виртуалок
+	if err := setupBridge(); err != nil {
+		fmt.Printf("Ошибка при создании моста: %v", err)
+		return nil, err
+	}
+
 	archConfig := archConfigs[env.OS+"/"+env.Arch]
 	cfg := &Config{
 		Count:       1,
@@ -489,6 +495,30 @@ func (inst *instance) boot() error {
 	return nil
 }
 
+func setupBridge() error {
+	// Проверяем, существует ли мост br0
+	if _, err := exec.Command("ip", "link", "show", "br0").Output(); err == nil {
+		fmt.Println("Bridge br0 уже существует")
+		return nil
+	}
+
+	fmt.Println("Создаём сетевой мост br0...")
+	cmds := [][]string{
+		{"ip", "link", "add", "br0", "type", "bridge"},
+		{"ip", "addr", "add", "192.168.100.1/24", "dev", "br0"},
+		{"ip", "link", "set", "br0", "up"},
+	}
+
+	for _, cmd := range cmds {
+		if err := exec.Command(cmd[0], cmd[1:]...).Run(); err != nil {
+			return err
+		}
+	}
+
+	fmt.Println("Bridge br0 создан")
+	return nil
+}
+
 func (inst *instance) buildQemuArgs() ([]string, error) {
 	args := []string{
 		"-m", strconv.Itoa(inst.cfg.Mem),
@@ -508,6 +538,9 @@ func (inst *instance) buildQemuArgs() ([]string, error) {
 	args = append(args,
 		"-device", inst.cfg.NetDev+",netdev=net0",
 		"-netdev", fmt.Sprintf("user,id=net0,restrict=on,hostfwd=tcp:127.0.0.1:%v-:22", inst.port),
+
+		"-device", fmt.Sprintf("%s,netdev=net1,mac=52:54:00:12:34:%02X", inst.cfg.NetDev, inst.index),
+		"-netdev", fmt.Sprintf("bridge,id=net1_vm%d,br=br0", inst.index),
 	)
 	if inst.image == "9p" {
 		args = append(args,

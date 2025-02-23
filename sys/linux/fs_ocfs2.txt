@@ -1,0 +1,8 @@
+# Copyright 2025 syzkaller project authors. All rights reserved.
+# Use of this source code is governed by Apache 2 LICENSE that can be found in the LICENSE file.
+
+include <fcntl.h>
+
+openat$ocfs2(fd const[AT_FDCWD], file ptr[in, string["/mnt/shared/"]], flags flags[open_flags], mode const[0]) fd_dir
+
+# # open_flags_ocfs2 = O_RDONLY, O_WRONLY, O_RDWR, O_CREAT, O_APPEND, O_TRUNC
